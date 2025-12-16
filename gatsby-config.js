@@ -9,7 +9,16 @@ module.exports = {
   plugins: [{
     resolve: 'gatsby-source-wordpress',
     options: {
-      "url": "http://localhost:10028/"
+      "url": "http://localhost:10028/graphql",
+         type: {
+          MediaItem: {
+            createFileNodes: false,
+          },
+        },
+            
+                     html: {
+      useGatsbyImage: false  
+    },
     }
   }, "gatsby-plugin-image", "gatsby-plugin-sharp", "gatsby-transformer-sharp"]
 };
