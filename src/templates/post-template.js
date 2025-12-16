@@ -1,28 +1,23 @@
 import React from "react";
 import { graphql } from "gatsby";
+import { GatsbyImage, getImage } from "gatsby-plugin-image";
 
 const PostTemplate = ({ data }) => {
   const post = data.wpPost;
-  const imageUrl = post.featuredImage?.node?.sourceUrl;
-  const altText =
-    post.featuredImage?.node?.altText || post.title;
+  const featuredImage = getImage(
+    post.featuredImage?.node?.localFile?.childImageSharp
+  );
 
   return (
     <main style={{ maxWidth: "900px", margin: "40px auto" }}>
       <h1>{post.title}</h1>
 
-      {/* Featured Image (normal img, not Gatsby) */}
-      {imageUrl && (
-        <img
-          src={imageUrl}
-          alt={altText}
-          loading="lazy"
-          style={{
-            width: "100%",
-            maxHeight: "500px",
-            objectFit: "cover",
-            marginBottom: "30px",
-          }}
+      {/* Featured Image */}
+      {featuredImage && (
+        <GatsbyImage
+          image={featuredImage}
+          alt={post.featuredImage.node.altText || post.title}
+          style={{ marginBottom: "30px" }}
         />
       )}
 
@@ -44,8 +39,16 @@ export const query = graphql`
       content
       featuredImage {
         node {
-          sourceUrl
           altText
+          localFile {
+            childImageSharp {
+              gatsbyImageData(
+                width: 1200
+                placeholder: BLURRED
+                formats: [AUTO, WEBP]
+              )
+            }
+          }
         }
       }
     }

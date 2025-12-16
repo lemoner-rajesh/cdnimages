@@ -1,5 +1,6 @@
 import React from "react";
 import { graphql, Link } from "gatsby";
+import { GatsbyImage, getImage } from "gatsby-plugin-image";
 import "./posts.css";
 
 const PostsPage = ({ data }) => {
@@ -11,19 +12,22 @@ const PostsPage = ({ data }) => {
 
       <div className="posts-grid">
         {posts.map(post => {
-          const imageUrl = post.featuredImage?.node?.sourceUrl;
+          const image = getImage(
+            post.featuredImage?.node?.localFile?.childImageSharp
+          );
 
           return (
             <article key={post.id} className="post-card">
               <Link to={post.uri} className="post-link">
-                {imageUrl && (
-                  <img
-                    src={imageUrl}
-                    alt={post.title}
+                {image && (
+                  <GatsbyImage
+                    image={image}
+                    alt={post.featuredImage.node.altText || post.title}
                     className="post-image"
-                    loading="lazy"
                   />
                 )}
+
+                {console.log("img",post)}
 
                 <div className="post-content">
                   <h2>{post.title}</h2>
@@ -43,6 +47,7 @@ const PostsPage = ({ data }) => {
 };
 
 export default PostsPage;
+
 export const query = graphql`
   query AllPostsListing {
     allWpPost(sort: { date: DESC }) {
@@ -53,7 +58,17 @@ export const query = graphql`
         uri
         featuredImage {
           node {
-            sourceUrl
+            altText
+            localFile {
+              childImageSharp {
+                gatsbyImageData(
+                  width: 400
+                  height: 260
+                  placeholder: BLURRED
+                  formats: [AUTO, WEBP]
+                )
+              }
+            }
           }
         }
       }
