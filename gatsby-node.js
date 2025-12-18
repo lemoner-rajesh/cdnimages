@@ -3,13 +3,20 @@ const path = require("path");
 exports.createPages = async ({ graphql, actions, reporter }) => {
   const { createPage } = actions;
 
+  // 🔹 Build-time language flag
+  const BUILD_LANG = (process.env.GATSBY_LANG || "en").toLowerCase();
+
+  reporter.info(`🚀 Building language: ${BUILD_LANG}`);
+
   const result = await graphql(`
     {
-      allWpPost{
+      allWpPost {
         nodes {
           id
           slug
-          uri
+          language {
+            code
+          }
         }
       }
     }
@@ -20,13 +27,34 @@ exports.createPages = async ({ graphql, actions, reporter }) => {
   }
 
   const postTemplate = path.resolve("./src/templates/post-template.js");
+  const listingTemplate = path.resolve("./src/templates/post-listing.js");
 
-  result.data.allWpPost.nodes.forEach(post => {
+  // 🔹 Filter posts MANUALLY (schema-safe)
+  const filteredPosts = result.data.allWpPost.nodes.filter(
+    node => node.language?.code?.toLowerCase() === BUILD_LANG
+  );
+
+  reporter.info(`✅ Found ${filteredPosts.length} ${BUILD_LANG.toUpperCase()} posts`);
+
+  // 🔹 Create listing page ONCE
+  createPage({
+    path: `/${BUILD_LANG}`,
+    component: listingTemplate,
+    context: {
+      // lang: BUILD_LANG.toUpperCase(),
+lang: BUILD_LANG, // "en" | "ar"
+    },
+  });
+
+  // 🔹 Create post pages
+  filteredPosts.forEach(node => {
     createPage({
-      path: post.uri,
+      path: `/${BUILD_LANG}/${node.slug}/`,
       component: postTemplate,
       context: {
-        id: post.id,
+        id: node.id,
+        // lang: BUILD_LANG.toUpperCase(),
+        lang: BUILD_LANG, // "en" | "ar"
       },
     });
   });
